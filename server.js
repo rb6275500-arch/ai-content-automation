@@ -84,8 +84,8 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
 const { google } = require('googleapis');
 
 const oauth2Client = new google.auth.OAuth2(
@@ -110,3 +110,5 @@ app.get('/oauth2callback', async (req, res) => {
   console.log('REFRESH TOKEN:', tokens.refresh_token);
   res.send('YouTube Connected Successfully! 🎉');
 });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
