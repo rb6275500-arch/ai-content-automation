@@ -1,14 +1,14 @@
 {
   "name": "ai-content-automation",
   "version": "1.0.0",
-  "description": "Cloud Auto Content Engine",
+  "description": "AI Auto Publisher",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "node-cron": "^3.0.3",
-    "axios": "^1.6.2"
+    "googleapis": "^126.0.1",
+    "node-cron": "^3.0.2"
   }
 }
