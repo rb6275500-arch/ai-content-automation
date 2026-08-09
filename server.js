@@ -1,61 +1,43 @@
 const express = require('express');
 const cron = require('node-cron');
-const axios = require('axios');
 
 const app = express();
 app.use(express.json());
 
-// Main Automation Config Store (Aapke app se update hoga)
-let userSettings = {
-  niche: {
-    youtube: "Bhagavad Gita & Life Wisdom",
-    facebook: "Daily Motivation Hindi",
-    instagram: "Krishnaradhe Quotes"
-  },
-  schedules: {
-    youtube: "19:00",  // 7:00 PM
-    facebook: "20:00", // 8:00 PM
-    instagram: "21:00" // 9:00 PM
-  },
-  automationOn: true
-};
-
-// Mobile Control Panel API (App se settings change karne ke liye)
-app.get('/api/settings', (req, res) => res.json(userSettings));
-
-app.post('/api/settings', (req, res) => {
-  userSettings = { ...userSettings, ...req.body };
-  res.json({ status: "Success", message: "Settings Updated Successfully!", settings: userSettings });
+// Main Homepage Route (Isse 'Cannot GET /' hategi)
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>AI Auto Publisher</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { font-family: Arial, sans-serif; background: #121212; color: white; text-align: center; padding: 20px; }
+          .card { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-top: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+          .status { color: #00ff7f; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <h2>🚀 AI Content Auto-Publisher Engine</h2>
+        <div class="card">
+          <p>Status: <span class="status">LIVE & RUNNING 24/7</span></p>
+          <p>YouTube Schedule: 19:00 (7 PM)</p>
+          <p>Facebook Schedule: 20:00 (8 PM)</p>
+          <p>Instagram Schedule: 21:00 (9 PM)</p>
+        </div>
+      </body>
+    </html>
+  `);
 });
 
-// Master Auto Publisher Engine (Har minute check karega)
+// Master Automation Cron Job (Har minute time check karega)
 cron.schedule('* * * * *', async () => {
-  if (!userSettings.automationOn) return;
-
   const now = new Date();
-  // IST Time Zone Correction
   const istTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   const currentTime = `${String(istTime.getHours()).padStart(2, '0')}:${String(istTime.getMinutes()).padStart(2, '0')}`;
 
-  console.log(`[Cloud Check at ${currentTime}] System Running...`);
-
-  // YouTube Schedule Trigger
-  if (userSettings.schedules.youtube === currentTime) {
-    console.log("🚀 YouTube Video Generation & Auto-Publish Triggered!");
-    // Cloud Video Engine Call Hoga
-  }
-
-  // Facebook Schedule Trigger
-  if (userSettings.schedules.facebook === currentTime) {
-    console.log("🚀 Facebook Video Generation & Auto-Publish Triggered!");
-  }
-
-  // Instagram Schedule Trigger
-  if (userSettings.schedules.instagram === currentTime) {
-    console.log("🚀 Instagram Video Generation & Auto-Publish Triggered!");
-  }
+  console.log(`[Cloud Check ${currentTime}] Server Active...`);
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server live on port ${PORT}`));
-
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
