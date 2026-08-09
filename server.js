@@ -1,11 +1,11 @@
 const express = require('express');
 const cron = require('node-cron');
-const axios = require('axios');
+const { google } = require('googleapis');
 
 const app = express();
 app.use(express.json());
 
-// User Settings Store
+// User Settings Configuration
 let userSettings = {
   niches: {
     youtube: "Bhagavad Gita & Spirituality",
@@ -29,9 +29,9 @@ app.get('/', (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
           body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: white; text-align: center; padding: 20px; }
-          .card { background: #1e293b; padding: 20px; border-radius: 16px; margin: 15px auto; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
+          .card { background: #1e293b; padding: 20px; border-radius: 16px; margin: 15px auto; max-width: 400px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
           .status { color: #38bdf8; font-weight: bold; }
-          .badge { background: #22c55e; color: black; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+          .badge { background: #22c55e; color: black; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px; }
           h2 { color: #f8fafc; }
         </style>
       </head>
@@ -55,14 +55,14 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Settings Fetch and Update API for Mobile App
+// Settings Fetch and Update API
 app.get('/api/settings', (req, res) => res.json(userSettings));
 app.post('/api/settings', (req, res) => {
   userSettings = { ...userSettings, ...req.body };
   res.json({ message: "Settings Updated Successfully!", settings: userSettings });
 });
 
-// Master Automation Cron Job (Runs every minute)
+// Master Automation Cron Job
 cron.schedule('* * * * *', async () => {
   if (!userSettings.automationOn) return;
 
@@ -72,7 +72,6 @@ cron.schedule('* * * * *', async () => {
 
   console.log(`[Check at ${currentTime}] Auto-Publisher is scanning...`);
 
-  // Triggers for specific times
   if (userSettings.schedules.youtube === currentTime) {
     console.log("🎬 Triggering Automatic Video Creation for YouTube...");
   }
@@ -84,10 +83,7 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-
-
-const { google } = require('googleapis');
-
+// Google OAuth Setup
 const oauth2Client = new google.auth.OAuth2(
   process.env.YOUTUBE_CLIENT_ID,
   process.env.YOUTUBE_CLIENT_SECRET,
@@ -106,9 +102,16 @@ app.get('/login-youtube', (req, res) => {
 // Callback Route
 app.get('/oauth2callback', async (req, res) => {
   const { code } = req.query;
-  const { tokens } = await oauth2Client.getToken(code);
-  console.log('REFRESH TOKEN:', tokens.refresh_token);
-  res.send('YouTube Connected Successfully! 🎉');
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    console.log('REFRESH TOKEN:', tokens.refresh_token);
+    res.send('YouTube Connected Successfully! 🎉');
+  } catch (error) {
+    console.error('Error getting tokens:', error);
+    res.send('Error connecting YouTube. Check console logs.');
+  }
 });
+
+// Server Listener
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
