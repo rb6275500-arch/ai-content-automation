@@ -86,3 +86,27 @@ cron.schedule('* * * * *', async () => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const { google } = require('googleapis');
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.YOUTUBE_CLIENT_ID,
+  process.env.YOUTUBE_CLIENT_SECRET,
+  'https://ai-content-automation-lti7.onrender.com/oauth2callback'
+);
+
+// YouTube Login Route
+app.get('/login-youtube', (req, res) => {
+  const url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['https://www.googleapis.com/auth/youtube.upload']
+  });
+  res.redirect(url);
+});
+
+// Callback Route
+app.get('/oauth2callback', async (req, res) => {
+  const { code } = req.query;
+  const { tokens } = await oauth2Client.getToken(code);
+  console.log('REFRESH TOKEN:', tokens.refresh_token);
+  res.send('YouTube Connected Successfully! 🎉');
+});
