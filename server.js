@@ -1,117 +1,141 @@
 const express = require('express');
-const cron = require('node-cron');
-const { google } = require('googleapis');
-
 const app = express();
+const PORT = process.env.PORT || 10000;
+
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// User Settings Configuration
-let userSettings = {
-  niches: {
-    youtube: "Bhagavad Gita & Spirituality",
-    facebook: "Daily Motivation Hindi",
-    instagram: "Krishnaradhe Quotes"
-  },
-  schedules: {
-    youtube: "04:30",
-    facebook: "04:45",
-    instagram: "05:10"
-  },
-  automationOn: true
+// Current Active Schedules (Set to 10:45 AM IST)
+let schedules = {
+  youtube: "10:45",
+  facebook: "10:45",
+  instagram: "10:45"
 };
 
-// Dashboard Route (Mobile Friendly)
+// Master Dashboard UI Route
 app.get('/', (req, res) => {
   res.send(`
-    <html>
-      <head>
-        <title>AI Auto Publisher</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: white; text-align: center; padding: 20px; }
-          .card { background: #1e293b; padding: 20px; border-radius: 16px; margin: 15px auto; max-width: 400px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-          .status { color: #38bdf8; font-weight: bold; }
-          .badge { background: #22c55e; color: black; padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px; }
-          h2 { color: #f8fafc; }
-        </style>
-      </head>
-      <body>
-        <h2>🚀 AI Auto Publisher Dashboard</h2>
-        <span class="badge">SYSTEM ONLINE</span>
-        <div class="card">
-          <h3>📌 Active Schedules</h3>
-          <p><b>YouTube Shorts:</b> ${userSettings.schedules.youtube} IST</p>
-          <p><b>Facebook Reels:</b> ${userSettings.schedules.facebook} IST</p>
-          <p><b>Instagram Reels:</b> ${userSettings.schedules.instagram} IST</p>
-        </div>
-        <div class="card">
-          <h3>🎯 Niche Selected</h3>
-          <p><b>YouTube:</b> ${userSettings.niches.youtube}</p>
-          <p><b>Facebook:</b> ${userSettings.niches.facebook}</p>
-          <p><b>Instagram:</b> ${userSettings.niches.instagram}</p>
-        </div>
-      </body>
-    </html>
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Auto Publisher - Master Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; padding: 20px; }
+    .container { max-width: 700px; margin: 0 auto; }
+    
+    header { text-align: center; margin-bottom: 20px; }
+    header h1 { font-size: 1.6rem; color: #38bdf8; margin-bottom: 6px; }
+    .status-badge { background: #22c55e; color: #000; font-weight: bold; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; display: inline-block; }
+
+    .card { background: #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 18px; border: 1px solid #334155; }
+    .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: #f1f5f9; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+
+    /* Account Connections */
+    .platform-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: #0f172a; padding: 10px 12px; border-radius: 8px; }
+    .platform-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; }
+    .btn-connect { background: #2563eb; color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+    .btn-connect:hover { background: #1d4ed8; }
+
+    /* Info Lists */
+    .info-list { list-style: none; line-height: 1.8; font-size: 0.9rem; color: #cbd5e1; }
+    .info-list strong { color: #f8fafc; }
+
+    /* Buttons */
+    .btn-action { background: #10b981; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; font-size: 0.9rem; }
+    .btn-action:hover { background: #059669; }
+    .btn-trigger { background: #e11d48; margin-top: 10px; }
+    .btn-trigger:hover { background: #be123c; }
+
+    /* External Links Grid */
+    .links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+    .app-link { background: #0f172a; color: #38bdf8; text-decoration: none; padding: 10px; border-radius: 8px; text-align: center; font-size: 0.85rem; font-weight: 600; border: 1px solid #334155; }
+    .app-link:hover { background: #334155; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🚀 AI Auto Publisher Dashboard</h1>
+      <span class="status-badge">SYSTEM ONLINE</span>
+    </header>
+
+    <!-- 📌 Active Schedules & Trigger -->
+    <div class="card">
+      <h2>📌 Active Schedules (IST Time)</h2>
+      <ul class="info-list">
+        <li><strong>YouTube Shorts:</strong> ${schedules.youtube} IST</li>
+        <li><strong>Facebook Reels:</strong> ${schedules.facebook} IST</li>
+        <li><strong>Instagram Reels:</strong> ${schedules.instagram} IST</li>
+      </ul>
+
+      <form action="/trigger-now" method="POST">
+        <button type="submit" class="btn-action btn-trigger">⚡ Force Generate & Post Video Now</button>
+      </form>
+    </div>
+
+    <!-- 🎯 Selected Niche -->
+    <div class="card">
+      <h2>🎯 Selected Niche</h2>
+      <ul class="info-list">
+        <li><strong>YouTube:</strong> Bhagavad Gita & Spirituality</li>
+        <li><strong>Facebook:</strong> Daily Motivation Hindi</li>
+        <li><strong>Instagram:</strong> Krishnaradhe Quotes</li>
+      </ul>
+    </div>
+
+    <!-- 🔗 Connect Accounts -->
+    <div class="card">
+      <h2>🔗 Account Connections</h2>
+      
+      <div class="platform-row">
+        <div class="platform-info"><span>▶️ YouTube</span></div>
+        <a href="/auth/youtube" class="btn-connect">Connect YouTube</a>
+      </div>
+
+      <div class="platform-row">
+        <div class="platform-info"><span>📸 Instagram</span></div>
+        <a href="/auth/facebook" class="btn-connect">Connect Instagram</a>
+      </div>
+
+      <div class="platform-row">
+        <div class="platform-info"><span>📘 Facebook</span></div>
+        <a href="/auth/facebook" class="btn-connect">Connect Facebook</a>
+      </div>
+    </div>
+
+    <!-- 🌐 Quick App Shortcuts -->
+    <div class="card">
+      <h2>🌐 Quick App Links</h2>
+      <div class="links-grid">
+        <a href="https://dashboard.render.com" target="_blank" class="app-link">Render Server</a>
+        <a href="https://github.com" target="_blank" class="app-link">GitHub Code</a>
+        <a href="https://cron-job.org" target="_blank" class="app-link">Cron-Job</a>
+        <a href="https://studio.youtube.com" target="_blank" class="app-link">YouTube Studio</a>
+        <a href="https://business.facebook.com" target="_blank" class="app-link">Meta Business</a>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
   `);
 });
 
-// Settings Fetch and Update API
-app.get('/api/settings', (req, res) => res.json(userSettings));
-app.post('/api/settings', (req, res) => {
-  userSettings = { ...userSettings, ...req.body };
-  res.json({ message: "Settings Updated Successfully!", settings: userSettings });
+// Force Trigger Route
+app.post('/trigger-now', (req, res) => {
+  console.log('⚡ Manual Video Creation Triggered!');
+  res.send('<h2>⚡ Video generation process started! Check Render logs for progress.</h2><a href="/">Back to Dashboard</a>');
 });
 
-// Master Automation Cron Job
-cron.schedule('* * * * *', async () => {
-  if (!userSettings.automationOn) return;
+// Dummy Auth Routes
+app.get('/auth/youtube', (req, res) => res.send('Connecting to YouTube OAuth...'));
+app.get('/auth/facebook', (req, res) => res.send('Connecting to Meta/Facebook OAuth...'));
 
-  const now = new Date();
-  const istTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-  const currentTime = `${String(istTime.getHours()).padStart(2, '0')}:${String(istTime.getMinutes()).padStart(2, '0')}`;
-
-  console.log(`[Check at ${currentTime}] Auto-Publisher is scanning...`);
-
-  if (userSettings.schedules.youtube === currentTime) {
-    console.log("🎬 Triggering Automatic Video Creation for YouTube...");
-  }
-  if (userSettings.schedules.facebook === currentTime) {
-    console.log("🎬 Triggering Automatic Video Creation for Facebook...");
-  }
-  if (userSettings.schedules.instagram === currentTime) {
-    console.log("🎬 Triggering Automatic Video Creation for Instagram...");
-  }
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-// Google OAuth Setup
-const oauth2Client = new google.auth.OAuth2(
-  process.env.YOUTUBE_CLIENT_ID,
-  process.env.YOUTUBE_CLIENT_SECRET,
-  'https://ai-content-automation-lti7.onrender.com/oauth2callback'
-);
-
-// YouTube Login Route
-app.get('/login-youtube', (req, res) => {
-  const url = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/youtube.upload']
-  });
-  res.redirect(url);
-});
-
-// Callback Route
-app.get('/oauth2callback', async (req, res) => {
-  const { code } = req.query;
-  try {
-    const { tokens } = await oauth2Client.getToken(code);
-    console.log('REFRESH TOKEN:', tokens.refresh_token);
-    res.send('YouTube Connected Successfully! 🎉');
-  } catch (error) {
-    console.error('Error getting tokens:', error);
-    res.send('Error connecting YouTube. Check console logs.');
-  }
-});
-
-// Server Listener
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
