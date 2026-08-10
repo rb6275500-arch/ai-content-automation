@@ -13,9 +13,9 @@ let userSettings = {
     instagram: "Krishnaradhe Quotes"
   },
   schedules: {
-    youtube: "09:20",
-    facebook: "09:00",
-    instagram: "09:00"
+    youtube: "04:30",
+    facebook: "04:45",
+    instagram: "05:10"
   },
   automationOn: true
 };
