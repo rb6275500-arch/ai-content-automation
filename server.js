@@ -118,7 +118,7 @@ app.post('/trigger-now', (req, res) => {
   res.send('<h2>⚡ Video generation process started! Check Render logs for progress.</h2><a href="/">Back to Dashboard</a>');
 });
 
-// Real YouTube OAuth Route (REDIRECT TO GOOGLE LOGIN)
+// Real YouTube OAuth Route (FIXED REDIRECT URL & ENCODING)
 app.get('/auth/youtube', (req, res) => {
   const clientId = process.env.YOUTUBE_CLIENT_ID;
   const redirectUri = process.env.YOUTUBE_REDIRECT_URI || 'https://ai-content-automation-ti7.onrender.com/auth/youtube/callback';
@@ -127,8 +127,8 @@ app.get('/auth/youtube', (req, res) => {
     return res.status(500).send('<h3>Error: YOUTUBE_CLIENT_ID missing in Render Environment Variables!</h3>');
   }
 
-  const scope = encodeURIComponent('https://www.googleapis.com/auth/youtube.upload');
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent`;
+  const scope = 'https://www.googleapis.com/auth/youtube.upload';
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
 
   res.redirect(googleAuthUrl);
 });
